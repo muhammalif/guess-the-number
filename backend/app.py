@@ -9,28 +9,26 @@ from routes.user_routes import user_blueprint
 from routes.auth import auth_bp
 import os
 from flask_migrate import Migrate
+from config import config
 
-def create_app():
+def create_app(config_name='default'):
     app = Flask(__name__)
-    app.config.from_object("config.Config")
+    
+    # Load configuration
+    app.config.from_object(config[config_name])
 
     # Setup JWT
     jwt = JWTManager(app)
 
-    # Enable CORS with more permissive configuration
+    # Initialize CORS with specific configuration
     CORS(app, 
-        origins=["http://localhost:5173", "http://192.168.1.2:5173"],  # Allow specific origins
-        allow_credentials=True,
-        supports_credentials=True,
-        resources={
-            r"/*": {
-                "origins": ["http://localhost:5173", "http://192.168.1.2:5173"],  # Allow specific origins
-                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-                "allow_headers": ["Content-Type", "Authorization"],
-                "expose_headers": ["Content-Type", "Authorization"],
-                "supports_credentials": True
-            }
-        })
+         resources={r"/*": {
+             "origins": app.config['CORS_ORIGINS'],
+             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+             "allow_headers": ["Content-Type", "Authorization"],
+             "supports_credentials": True
+         }},
+         supports_credentials=True)
 
     # Ensure instance folder exists with proper permissions
     instance_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
@@ -47,11 +45,11 @@ def create_app():
     @app.after_request
     def after_request(response):
         origin = request.headers.get('Origin')
-        if origin in ["http://localhost:5173", "http://192.168.1.2:5173"]:
-            response.headers.add('Access-Control-Allow-Origin', origin)
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        if origin in app.config['CORS_ORIGINS']:
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Credentials'] = 'true'
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
         return response
         
     # Home routes
@@ -80,14 +78,14 @@ def create_app():
             })
 
     # Register Blueprints
-    app.register_blueprint(game_blueprint, url_prefix="/game")
-    app.register_blueprint(leaderboard_blueprint, url_prefix="/leaderboard") 
-    app.register_blueprint(user_blueprint, url_prefix="/user")
-    app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(game_blueprint, url_prefix="/api/game")
+    app.register_blueprint(leaderboard_blueprint, url_prefix="/api/leaderboard") 
+    app.register_blueprint(user_blueprint, url_prefix="/api/user")
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
 
     return app
 
-if __name__ == "__main__":
-    app = create_app()
+if __name__ == '__main__':
+    app = create_app('development')
     print("🚀 Server is running on http://0.0.0.0:5000")
     app.run(host='0.0.0.0', port=5000, debug=True)
