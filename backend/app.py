@@ -58,7 +58,7 @@ def create_app(config_name='default'):
         return jsonify({"message": "🎮 Server is running now!"})
 
     # Checking database status
-    @app.route("/db-status")
+    @app.route("/api/db-status")
     def db_status():
         try:
             with db.engine.connect() as connection:
