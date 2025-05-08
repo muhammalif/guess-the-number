@@ -85,9 +85,10 @@ def create_app(config_name='default'):
 
     return app
 
+app = create_app('production')
+
 if __name__ == '__main__':
     app = create_app('development')
     print("🚀 Server is running on http://0.0.0.0:5000")
     app.run(host='0.0.0.0', port=5000, debug=True)
-else:
-    app = create_app('production')
+
