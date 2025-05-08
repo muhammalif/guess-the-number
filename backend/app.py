@@ -32,9 +32,9 @@ def create_app(config_name='default'):
 
     # Ensure instance folder exists with proper permissions
     instance_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
-    if not os.path.exists(instance_path):
-        os.makedirs(instance_path, mode=0o777)
-        print(f"✅ Created instance directory at {instance_path}")
+    # if not os.path.exists(instance_path):
+    #     os.makedirs(instance_path, mode=0o777)
+    #     print(f"✅ Created instance directory at {instance_path}")
 
     # Initialize database with our app
     init_db(app)
